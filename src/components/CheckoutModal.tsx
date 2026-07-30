@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, ShieldCheck, CreditCard, Truck, Lock } from 'lucide-react';
-import { CartItem } from '../types';
+import { CartItem, Order } from '../types';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   cartItems: CartItem[];
   onClose: () => void;
   onClearCart: () => void;
+  onCompleteOrder: (order: Order) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -14,6 +15,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   cartItems,
   onClose,
   onClearCart,
+  onCompleteOrder,
 }) => {
   if (!isOpen) return null;
 
@@ -40,6 +42,23 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     e.preventDefault();
     const generatedId = `RF-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderNumber(generatedId);
+
+    const newOrder: Order = {
+      id: generatedId,
+      orderNumber: generatedId,
+      date: new Date().toISOString().split('T')[0],
+      customerName: formData.fullName,
+      customerEmail: formData.email,
+      shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`,
+      items: cartItems,
+      subtotal,
+      tax: 0,
+      total,
+      paymentMethod: 'Credit Card (Online)',
+      status: 'Completed',
+    };
+
+    onCompleteOrder(newOrder);
     setStep('success');
     onClearCart();
   };

@@ -43,6 +43,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               BESTSELLER
             </span>
           )}
+          {product.stockQuantity <= 0 ? (
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold tracking-wider uppercase bg-red-600 text-white shadow-xs">
+              SOLD OUT
+            </span>
+          ) : product.stockQuantity <= 5 ? (
+            <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold tracking-wider uppercase bg-amber-500 text-white shadow-xs font-mono">
+              ONLY {product.stockQuantity} LEFT
+            </span>
+          ) : null}
         </div>
 
         {/* Top-Right Wishlist Button */}
@@ -127,11 +136,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             id={`add-cart-btn-${product.id}`}
+            disabled={product.stockQuantity <= 0}
             onClick={() => onAddToCart(product, defaultSize, defaultColor)}
-            className="px-3 py-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs active:scale-95"
+            className={`px-3 py-2 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs ${
+              product.stockQuantity <= 0
+                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                : 'bg-slate-900 hover:bg-indigo-600 text-white active:scale-95'
+            }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span>ADD</span>
+            <span>{product.stockQuantity <= 0 ? 'OUT' : 'ADD'}</span>
           </button>
         </div>
       </div>

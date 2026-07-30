@@ -6,10 +6,13 @@ import streetModelImg from '../assets/images/real_fox_street_model_1785432688731
 export const PRODUCTS: Product[] = [
   {
     id: 'rf-001',
+    sku: 'RF-HD-001',
     name: 'Real Fox Classic Blue Hoodie',
     category: 'Hoodies',
     price: 85.00,
+    costPrice: 38.00,
     originalPrice: 105.00,
+    stockQuantity: 24,
     image: blueHoodieImg,
     colors: [
       { name: 'Royal Blue', hex: '#1E60D5' },
@@ -33,9 +36,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-002',
+    sku: 'RF-HD-002',
     name: 'Real Fox Script Stealth Black Hoodie',
     category: 'Hoodies',
     price: 88.00,
+    costPrice: 40.00,
+    stockQuantity: 4,
     image: blackHoodieImg,
     colors: [
       { name: 'Stealth Black', hex: '#111111' },
@@ -58,10 +64,13 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-003',
+    sku: 'RF-JK-003',
     name: 'Real Fox Tactical Bomber & Cap Combo',
     category: 'Jackets',
     price: 145.00,
+    costPrice: 65.00,
     originalPrice: 175.00,
+    stockQuantity: 12,
     image: streetModelImg,
     colors: [
       { name: 'Matte Black', hex: '#18181B' },
@@ -83,9 +92,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-004',
+    sku: 'RF-HW-004',
     name: 'Real Fox Minimalist Embroidered Beanie',
     category: 'Caps & Headwear',
     price: 32.00,
+    costPrice: 10.00,
+    stockQuantity: 30,
     image: 'https://images.unsplash.com/photo-1576871337632-b9aef4c17ab9?auto=format&fit=crop&w=800&q=80',
     colors: [
       { name: 'Black', hex: '#111111' },
@@ -107,10 +119,13 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-005',
+    sku: 'RF-TS-005',
     name: 'Real Fox Heavyweight Oversized Graphic Tee',
     category: 'T-Shirts',
     price: 45.00,
+    costPrice: 18.00,
     originalPrice: 55.00,
+    stockQuantity: 18,
     image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80',
     colors: [
       { name: 'Vintage Black', hex: '#262626' },
@@ -133,9 +148,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-006',
+    sku: 'RF-PT-006',
     name: 'Real Fox Urban Camo Cargo Pants',
     category: 'Pants',
     price: 110.00,
+    costPrice: 48.00,
+    stockQuantity: 0,
     image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80',
     colors: [
       { name: 'Urban Camo', hex: '#4B5563' },
@@ -153,13 +171,16 @@ export const PRODUCTS: Product[] = [
     isBestSeller: true,
     rating: 4.8,
     reviewsCount: 88,
-    inStock: true
+    inStock: false
   },
   {
     id: 'rf-007',
+    sku: 'RF-HW-007',
     name: 'Real Fox Geometric Snapback Cap',
     category: 'Caps & Headwear',
     price: 38.00,
+    costPrice: 14.00,
+    stockQuantity: 15,
     image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80',
     colors: [
       { name: 'Black / Blue', hex: '#111111' },
@@ -181,10 +202,13 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'rf-008',
+    sku: 'RF-JK-008',
     name: 'Real Fox Trackside Waterproof Windbreaker',
     category: 'Jackets',
     price: 135.00,
+    costPrice: 55.00,
     originalPrice: 160.00,
+    stockQuantity: 8,
     image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=800&q=80',
     colors: [
       { name: 'Electric Blue / Black', hex: '#1E60D5' },

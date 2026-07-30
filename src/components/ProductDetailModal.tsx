@@ -83,10 +83,26 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="text-xs font-bold text-slate-800">{product.rating}</span>
-                  <span className="text-xs text-slate-500">({product.reviewsCount} reviews)</span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase font-mono ${
+                      product.stockQuantity <= 0
+                        ? 'bg-red-100 text-red-800'
+                        : product.stockQuantity <= 5
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}
+                  >
+                    {product.stockQuantity <= 0
+                      ? 'Out of Stock'
+                      : `${product.stockQuantity} in stock`}
+                  </span>
+
+                  <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <span className="text-xs font-bold text-slate-800">{product.rating}</span>
+                    <span className="text-xs text-slate-500">({product.reviewsCount})</span>
+                  </div>
                 </div>
               </div>
 
@@ -229,11 +245,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
               <button
                 id="modal-add-to-cart"
+                disabled={product.stockQuantity <= 0}
                 onClick={handleAdd}
-                className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white text-xs font-extrabold tracking-wider uppercase rounded-md shadow-lg flex items-center justify-center gap-2 transition-all"
+                className={`flex-1 py-3.5 text-xs font-extrabold tracking-wider uppercase rounded-md shadow-lg flex items-center justify-center gap-2 transition-all ${
+                  product.stockQuantity <= 0
+                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-98 shadow-indigo-950/20'
+                }`}
               >
                 <ShoppingBag className="w-4 h-4" />
-                <span>ADD TO BAG • ${(product.price * quantity).toFixed(2)}</span>
+                <span>
+                  {product.stockQuantity <= 0
+                    ? 'SOLD OUT — OUT OF STOCK'
+                    : `ADD TO BAG • $${(product.price * quantity).toFixed(2)}`}
+                </span>
               </button>
 
               <button

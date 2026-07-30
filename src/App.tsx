@@ -12,12 +12,76 @@ import { ContactModal } from './components/ContactModal';
 import { AuthModal } from './components/AuthModal';
 import { Toast } from './components/Toast';
 import { Footer } from './components/Footer';
-import { PRODUCTS } from './data/products';
-import { Product, CartItem } from './types';
+import { OwnerAdminDashboard } from './components/OwnerAdmin/OwnerAdminDashboard';
+import { PRODUCTS as INITIAL_PRODUCTS } from './data/products';
+import { Product, CartItem, Order, StoreSettings } from './types';
+
+const INITIAL_SETTINGS: StoreSettings = {
+  storeName: 'Real Fox Streetwear Flagship',
+  currencySymbol: '$',
+  taxRate: 8.5,
+  lowStockThreshold: 5,
+  ownerPin: '1234',
+  isPinRequired: false,
+};
+
+const INITIAL_ORDERS: Order[] = [
+  {
+    id: 'RF-882103',
+    orderNumber: 'RF-882103',
+    date: new Date().toISOString().split('T')[0],
+    customerName: 'Jordan Reed',
+    customerEmail: 'jordan@example.com',
+    shippingAddress: '124 Market St, San Francisco, CA 94105',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[0],
+        selectedSize: 'L',
+        selectedColor: 'Signature Gray',
+        quantity: 1,
+      },
+    ],
+    subtotal: 85,
+    tax: 7.23,
+    total: 92.23,
+    paymentMethod: 'Credit Card (Online)',
+    status: 'Completed',
+  },
+];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // 1. Dynamic Inventory State with LocalStorage Persistence
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('real_fox_inventory');
+      return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    } catch {
+      return INITIAL_PRODUCTS;
+    }
+  });
+
+  // 2. Orders History Log State with LocalStorage
+  const [orders, setOrders] = useState<Order[]>(() => {
+    try {
+      const saved = localStorage.getItem('real_fox_orders');
+      return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+    } catch {
+      return INITIAL_ORDERS;
+    }
+  });
+
+  // 3. Store Management Settings State
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    try {
+      const saved = localStorage.getItem('real_fox_settings');
+      return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+    } catch {
+      return INITIAL_SETTINGS;
+    }
+  });
 
   // Cart & Wishlist local state persistence
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -49,6 +113,33 @@ export default function App() {
   // Toast notification
   const [toast, setToast] = useState<{ message: string; type: 'cart' | 'wishlist' | 'info' } | null>(null);
 
+  // Save Inventory to LocalStorage whenever modified
+  useEffect(() => {
+    try {
+      localStorage.setItem('real_fox_inventory', JSON.stringify(products));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [products]);
+
+  // Save Orders to LocalStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('real_fox_orders', JSON.stringify(orders));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [orders]);
+
+  // Save Settings to LocalStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('real_fox_settings', JSON.stringify(settings));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [settings]);
+
   useEffect(() => {
     try {
       localStorage.setItem('real_fox_cart', JSON.stringify(cartItems));
@@ -72,8 +163,91 @@ export default function App() {
     }, 3500);
   };
 
+  // Inventory Management Handlers
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
+    );
+    showToast(`Updated "${updatedProduct.name}" in inventory`, 'info');
+  };
+
+  const handleAddProduct = (newProduct: Product) => {
+    setProducts((prev) => [newProduct, ...prev]);
+    showToast(`Added "${newProduct.name}" to inventory`, 'info');
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    showToast('Product removed from inventory', 'info');
+  };
+
+  const handleStockAdjust = (productId: string, delta: number) => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id === productId) {
+          const newQty = Math.max(0, p.stockQuantity + delta);
+          return { ...p, stockQuantity: newQty };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleResetInventory = () => {
+    setProducts(INITIAL_PRODUCTS);
+    showToast('Inventory reset to initial defaults', 'info');
+  };
+
+  // Order & POS Processing Handler (automatically deducts stock)
+  const handleCompleteOrder = (newOrder: Order) => {
+    setOrders((prev) => [newOrder, ...prev]);
+
+    // Deduct stock for each item sold
+    setProducts((prev) =>
+      prev.map((p) => {
+        const itemSold = newOrder.items.find((i) => i.product.id === p.id);
+        if (itemSold) {
+          const remaining = Math.max(0, p.stockQuantity - itemSold.quantity);
+          return { ...p, stockQuantity: remaining };
+        }
+        return p;
+      })
+    );
+
+    showToast(`Order ${newOrder.orderNumber} placed & inventory updated!`, 'info');
+  };
+
+  // Order Refund Handler (restores stock back to inventory)
+  const handleRefundOrder = (orderId: string) => {
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (!targetOrder) return;
+
+    // Mark order status as Refunded
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: 'Refunded' } : o))
+    );
+
+    // Restore item stock
+    setProducts((prev) =>
+      prev.map((p) => {
+        const itemRefunded = targetOrder.items.find((i) => i.product.id === p.id);
+        if (itemRefunded) {
+          return { ...p, stockQuantity: p.stockQuantity + itemRefunded.quantity };
+        }
+        return p;
+      })
+    );
+
+    showToast(`Order ${targetOrder.orderNumber} refunded & stock restored`, 'info');
+  };
+
   // Cart operations
   const handleAddToCart = (product: Product, size: string, color: string, quantity = 1) => {
+    if (product.stockQuantity <= 0) {
+      showToast(`Sorry, ${product.name} is currently out of stock!`, 'info');
+      return;
+    }
+
     setCartItems((prev) => {
       const existingIndex = prev.findIndex(
         (item) =>
@@ -121,7 +295,7 @@ export default function App() {
     });
   };
 
-  const wishlistProducts = PRODUCTS.filter((p) => wishlistIds.includes(p.id));
+  const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const scrollToGallery = () => {
@@ -165,27 +339,47 @@ export default function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenContact={() => setIsContactOpen(true)}
+        onOpenOwnerAdmin={() => setActiveTab('admin')}
       />
 
-      {/* Main Content */}
+      {/* Main Content View Switcher */}
       <main className="flex-grow">
-        {/* Hero Section */}
-        <HeroSection
-          onShopClick={scrollToGallery}
-          onNewArrivalsClick={scrollToGallery}
-        />
+        {activeTab === 'admin' ? (
+          <OwnerAdminDashboard
+            products={products}
+            orders={orders}
+            settings={settings}
+            onUpdateProduct={handleUpdateProduct}
+            onAddProduct={handleAddProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onStockAdjust={handleStockAdjust}
+            onCompletePosSale={handleCompleteOrder}
+            onRefundOrder={handleRefundOrder}
+            onUpdateSettings={setSettings}
+            onResetInventory={handleResetInventory}
+            onBackToStore={() => setActiveTab('home')}
+          />
+        ) : (
+          <>
+            {/* Hero Section */}
+            <HeroSection
+              onShopClick={scrollToGallery}
+              onNewArrivalsClick={scrollToGallery}
+            />
 
-        {/* Product Gallery */}
-        <ProductGallery
-          products={PRODUCTS}
-          wishlistIds={wishlistIds}
-          onQuickView={(p) => setSelectedProduct(p)}
-          onAddToCart={handleAddToCart}
-          onToggleWishlist={handleToggleWishlist}
-        />
+            {/* Product Gallery with Real Inventory State */}
+            <ProductGallery
+              products={products}
+              wishlistIds={wishlistIds}
+              onQuickView={(p) => setSelectedProduct(p)}
+              onAddToCart={handleAddToCart}
+              onToggleWishlist={handleToggleWishlist}
+            />
 
-        {/* Brand Story Section */}
-        <AboutSection />
+            {/* Brand Story Section */}
+            <AboutSection />
+          </>
+        )}
       </main>
 
       {/* Footer */}
@@ -217,6 +411,7 @@ export default function App() {
         cartItems={cartItems}
         onClose={() => setIsCheckoutOpen(false)}
         onClearCart={() => setCartItems([])}
+        onCompleteOrder={handleCompleteOrder}
       />
 
       <WishlistModal
@@ -229,7 +424,7 @@ export default function App() {
 
       <SearchModal
         isOpen={isSearchOpen}
-        products={PRODUCTS}
+        products={products}
         onClose={() => setIsSearchOpen(false)}
         onSelectProduct={(p) => setSelectedProduct(p)}
       />
@@ -254,3 +449,4 @@ export default function App() {
     </div>
   );
 }
+
