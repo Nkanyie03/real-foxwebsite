@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface RealFoxLogoProps {
   className?: string;
@@ -15,6 +15,12 @@ export const RealFoxLogo: React.FC<RealFoxLogoProps> = ({
   logoUrl,
   storeName,
 }) => {
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [logoUrl]);
+
   const sizeClasses = {
     sm: 'scale-90',
     md: 'scale-100',
@@ -29,19 +35,18 @@ export const RealFoxLogo: React.FC<RealFoxLogoProps> = ({
 
   const displayName = storeName || 'real fox';
 
+  const showCustomImage = logoUrl && !imgError;
+
   return (
     <div className={`flex items-center gap-3 select-none ${sizeClasses[size]} ${className}`}>
-      {/* If custom logo image URL is provided, display custom logo */}
-      {logoUrl ? (
-        <div className="flex items-center gap-3">
+      {/* Custom Logo Image */}
+      {showCustomImage ? (
+        <div className="flex items-center gap-2.5">
           <img
             src={logoUrl}
             alt={displayName}
-            className={`${imgHeightClasses[size]} object-contain rounded-lg transition-transform hover:scale-105`}
-            onError={(e) => {
-              // Hide broken image link if invalid URL
-              (e.target as HTMLElement).style.display = 'none';
-            }}
+            className={`${imgHeightClasses[size]} object-contain rounded-lg transition-transform hover:scale-105 shadow-2xs`}
+            onError={() => setImgError(true)}
           />
           {variant !== 'icon-only' && (
             <div className="flex flex-col">
@@ -57,11 +62,11 @@ export const RealFoxLogo: React.FC<RealFoxLogoProps> = ({
                 {displayName}
               </span>
               <span
-                className={`text-[8px] font-bold tracking-[0.22em] uppercase leading-none mt-1 ${
+                className={`text-[8px] font-bold tracking-[0.2em] uppercase leading-none mt-1 ${
                   variant === 'light' ? 'text-slate-300' : 'text-slate-800'
                 }`}
               >
-                OFFICIAL STORE LOGO
+                STREET WEAR
               </span>
             </div>
           )}
@@ -70,7 +75,7 @@ export const RealFoxLogo: React.FC<RealFoxLogoProps> = ({
         <>
           {variant !== 'text-only' && (
             <div className="relative flex items-center justify-center">
-              {/* Geometric Fox SVG outline matching image */}
+              {/* Geometric Fox SVG outline matching emblem */}
               <svg
                 width="38"
                 height="38"
@@ -154,3 +159,4 @@ export const RealFoxLogo: React.FC<RealFoxLogoProps> = ({
     </div>
   );
 };
+

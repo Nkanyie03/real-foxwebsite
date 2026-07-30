@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { X, Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import { RealFoxLogo } from './RealFoxLogo';
+import { StoreSettings } from '../types';
 
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
+  settings?: StoreSettings;
 }
 
-export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
+export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, settings }) => {
   if (!isOpen) return null;
 
   const [submitted, setSubmitted] = useState(false);
@@ -25,7 +27,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) =
         {/* Header matching brand color */}
         <div className="bg-indigo-600 p-6 text-white flex items-center justify-between">
           <div>
-            <RealFoxLogo variant="light" size="sm" />
+            <RealFoxLogo logoUrl={settings?.logoUrl} storeName={settings?.storeName} variant="light" size="sm" />
             <h3 className="text-lg font-black uppercase mt-2 tracking-wide">GET IN TOUCH</h3>
           </div>
           <button onClick={onClose} className="p-2 text-white/80 hover:text-white rounded-full transition-colors">

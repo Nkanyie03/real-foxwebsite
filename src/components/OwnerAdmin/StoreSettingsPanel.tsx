@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
-import { Settings, ShieldCheck, Lock, RotateCcw, Save, DollarSign, Percent, AlertTriangle, CreditCard, Image, Upload, Sparkles, X, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Settings,
+  ShieldCheck,
+  Lock,
+  RotateCcw,
+  Save,
+  DollarSign,
+  Percent,
+  AlertTriangle,
+  CreditCard,
+  Image as ImageIcon,
+  Upload,
+  Sparkles,
+  X,
+  Eye,
+  CheckCircle,
+  FileImage
+} from 'lucide-react';
 import { StoreSettings } from '../../types';
 import { RealFoxLogo } from '../RealFoxLogo';
 
@@ -16,6 +33,13 @@ export const StoreSettingsPanel: React.FC<StoreSettingsPanelProps> = ({
 }) => {
   const [form, setForm] = useState<StoreSettings>({ ...settings });
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [logoMessage, setLogoMessage] = useState<string | null>(null);
+
+  // Sync form when parent settings change
+  useEffect(() => {
+    setForm(settings);
+  }, [settings]);
 
   // Sample preset logo options
   const PRESET_LOGOS = [
@@ -41,20 +65,57 @@ export const StoreSettingsPanel: React.FC<StoreSettingsPanelProps> = ({
     },
   ];
 
+  const processImageFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file (PNG, JPG, SVG, WebP, etc.).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size exceeds 10MB limit. Please choose a smaller image.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        const newLogoUrl = reader.result;
+        const updated = { ...form, logoUrl: newLogoUrl };
+        setForm(updated);
+        onUpdateSettings(updated);
+        setLogoMessage('New logo uploaded & applied site-wide!');
+        setTimeout(() => setLogoMessage(null), 4000);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size exceeds 5MB limit. Please choose a smaller image.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setForm((prev) => ({ ...prev, logoUrl: reader.result as string }));
-        }
-      };
-      reader.readAsDataURL(file);
+      processImageFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
     }
   };
 
@@ -97,55 +158,117 @@ export const StoreSettingsPanel: React.FC<StoreSettingsPanelProps> = ({
           <div className="pt-4 border-t border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-extrabold uppercase text-slate-800 flex items-center gap-1.5">
-                <Image className="w-4 h-4 text-indigo-600" />
+                <ImageIcon className="w-4 h-4 text-indigo-600" />
                 Website Logo & Brand Emblem
               </h4>
               {form.logoUrl && (
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, logoUrl: '' })}
+                  onClick={() => {
+                    const updated = { ...form, logoUrl: '' };
+                    setForm(updated);
+                    onUpdateSettings(updated);
+                    setLogoMessage('Reset to default geometric logo.');
+                    setTimeout(() => setLogoMessage(null), 3000);
+                  }}
                   className="text-[10px] font-bold text-slate-500 hover:text-red-600 flex items-center gap-1 transition-colors"
                 >
-                  <RotateCcw className="w-3 h-3" /> Reset to Default Geometric Logo
+                  <RotateCcw className="w-3 h-3" /> Reset to Default Fox SVG
                 </button>
               )}
             </div>
 
-            {/* Input methods: Upload File or Direct URL */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Option 1: File Upload */}
-              <div className="p-3 border border-slate-200 rounded-xl bg-slate-50 space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-700 block">
-                  1. Upload Custom Image File
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="flex-1 cursor-pointer py-2 px-3 bg-white border border-slate-300 rounded-lg hover:border-indigo-600 hover:bg-indigo-50/50 transition-all flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700">
-                    <Upload className="w-4 h-4 text-indigo-600" />
-                    <span>Choose Image File...</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                <p className="text-[9px] text-slate-500">Supports PNG, JPG, SVG, WebP (Max 5MB)</p>
+            {logoMessage && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+                <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>{logoMessage}</span>
               </div>
+            )}
 
-              {/* Option 2: Image URL */}
-              <div className="p-3 border border-slate-200 rounded-xl bg-slate-50 space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-700 block">
-                  2. Or Paste Image Web URL
-                </label>
+            {/* Drag and Drop Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`p-6 border-2 border-dashed rounded-2xl text-center transition-all cursor-pointer ${
+                isDragging
+                  ? 'border-indigo-600 bg-indigo-50/80 scale-[1.01]'
+                  : 'border-slate-300 bg-slate-50/80 hover:border-indigo-400 hover:bg-slate-50'
+              }`}
+            >
+              <input
+                type="file"
+                id="logo-upload-input"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              <div className="space-y-3">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-xs border border-slate-200 text-indigo-600">
+                  <Upload className="w-6 h-6" />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="logo-upload-input"
+                    className="cursor-pointer text-xs font-black uppercase text-indigo-600 hover:text-indigo-800 underline"
+                  >
+                    Click to Choose Image File
+                  </label>
+                  <span className="text-xs font-bold text-slate-600"> or drag and drop here</span>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-1">
+                    PNG, JPG, SVG, WebP or GIF (Up to 10MB)
+                  </p>
+                </div>
+
+                {form.logoUrl && (
+                  <div className="pt-2 flex items-center justify-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 rounded-full text-[10px] font-bold text-slate-700 shadow-2xs">
+                      <FileImage className="w-3 h-3 text-indigo-600" /> Custom Logo Loaded
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = { ...form, logoUrl: '' };
+                        setForm(updated);
+                        onUpdateSettings(updated);
+                      }}
+                      className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                      title="Remove Logo"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Paste Image URL Input */}
+            <div className="p-3 border border-slate-200 rounded-xl bg-slate-50 space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-700 block">
+                Or Paste Image Direct Web Address (URL)
+              </label>
+              <div className="flex gap-2">
                 <input
                   type="url"
-                  placeholder="https://example.com/my-logo.png"
+                  placeholder="https://example.com/logo.png"
                   value={form.logoUrl || ''}
                   onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono font-semibold outline-none focus:ring-2 focus:ring-indigo-600 bg-white"
+                  className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs font-mono font-semibold outline-none focus:ring-2 focus:ring-indigo-600 bg-white"
                 />
-                <p className="text-[9px] text-slate-500">Direct image URL address</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdateSettings(form);
+                    setLogoMessage('Logo URL updated & applied site-wide!');
+                    setTimeout(() => setLogoMessage(null), 3000);
+                  }}
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors"
+                >
+                  Apply
+                </button>
               </div>
             </div>
 
@@ -161,7 +284,11 @@ export const StoreSettingsPanel: React.FC<StoreSettingsPanelProps> = ({
                     <button
                       key={preset.name}
                       type="button"
-                      onClick={() => setForm({ ...form, logoUrl: preset.url })}
+                      onClick={() => {
+                        const updated = { ...form, logoUrl: preset.url };
+                        setForm(updated);
+                        onUpdateSettings(updated);
+                      }}
                       className={`p-2 rounded-xl border text-left transition-all ${
                         isSelected
                           ? 'border-indigo-600 bg-indigo-50/80 ring-2 ring-indigo-600'
@@ -186,7 +313,7 @@ export const StoreSettingsPanel: React.FC<StoreSettingsPanelProps> = ({
             {/* Live Logo Preview Boxes */}
             <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-600">
-                <Eye className="w-3.5 h-3.5 text-indigo-600" /> Live Logo Header & Footer Preview
+                <Eye className="w-3.5 h-3.5 text-indigo-600" /> Live Site Header & Footer Preview
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {/* Header Preview (Light Theme) */}

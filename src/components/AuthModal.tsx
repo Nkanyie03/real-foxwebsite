@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { X, User, Lock, Mail, CheckCircle2 } from 'lucide-react';
 import { RealFoxLogo } from './RealFoxLogo';
+import { StoreSettings } from '../types';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoginSuccess: (user: { name: string; email: string }) => void;
+  settings?: StoreSettings;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, settings }) => {
   if (!isOpen) return null;
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -31,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
         
         {/* Header */}
         <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
-          <RealFoxLogo variant="light" size="sm" />
+          <RealFoxLogo logoUrl={settings?.logoUrl} storeName={settings?.storeName} variant="light" size="sm" />
           <button onClick={onClose} className="p-1 text-slate-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>

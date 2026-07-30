@@ -447,11 +447,13 @@ export default function App() {
 
       <ContactModal
         isOpen={isContactOpen}
+        settings={settings}
         onClose={() => setIsContactOpen(false)}
       />
 
       <AuthModal
         isOpen={isAuthOpen}
+        settings={settings}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={(user) => showToast(`Welcome back, ${user.name}!`, 'info')}
       />
