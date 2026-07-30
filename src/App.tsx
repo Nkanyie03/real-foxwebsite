@@ -241,6 +241,14 @@ export default function App() {
     showToast(`Order ${targetOrder.orderNumber} refunded & stock restored`, 'info');
   };
 
+  // Order Update Tracking & Fulfillment Handler
+  const handleUpdateOrder = (updatedOrder: Order) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+    );
+    showToast(`Order ${updatedOrder.orderNumber} status and tracking updated!`, 'info');
+  };
+
   // Cart operations
   const handleAddToCart = (product: Product, size: string, color: string, quantity = 1) => {
     if (product.stockQuantity <= 0) {
@@ -354,6 +362,7 @@ export default function App() {
             onDeleteProduct={handleDeleteProduct}
             onStockAdjust={handleStockAdjust}
             onCompletePosSale={handleCompleteOrder}
+            onUpdateOrder={handleUpdateOrder}
             onRefundOrder={handleRefundOrder}
             onUpdateSettings={setSettings}
             onResetInventory={handleResetInventory}

@@ -33,6 +33,7 @@ interface OwnerAdminDashboardProps {
   onDeleteProduct: (productId: string) => void;
   onStockAdjust: (productId: string, delta: number) => void;
   onCompletePosSale: (order: Order) => void;
+  onUpdateOrder: (updatedOrder: Order) => void;
   onRefundOrder: (orderId: string) => void;
   onUpdateSettings: (newSettings: StoreSettings) => void;
   onResetInventory: () => void;
@@ -48,6 +49,7 @@ export const OwnerAdminDashboard: React.FC<OwnerAdminDashboardProps> = ({
   onDeleteProduct,
   onStockAdjust,
   onCompletePosSale,
+  onUpdateOrder,
   onRefundOrder,
   onUpdateSettings,
   onResetInventory,
@@ -259,7 +261,7 @@ export const OwnerAdminDashboard: React.FC<OwnerAdminDashboardProps> = ({
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="border-b border-slate-200 flex space-x-2">
+      <div className="border-b border-slate-200 flex flex-wrap gap-2">
         <button
           onClick={() => setActiveTab('inventory')}
           className={`px-4 py-3 text-xs font-black uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all ${
@@ -269,7 +271,7 @@ export const OwnerAdminDashboard: React.FC<OwnerAdminDashboardProps> = ({
           }`}
         >
           <Package className="w-4 h-4" />
-          <span>INVENTORY MANAGEMENT ({products.length})</span>
+          <span>INVENTORY MANAGER ({products.length})</span>
         </button>
 
         <button
@@ -293,7 +295,12 @@ export const OwnerAdminDashboard: React.FC<OwnerAdminDashboardProps> = ({
           }`}
         >
           <TrendingUp className="w-4 h-4" />
-          <span>SALES LOG ({orders.length})</span>
+          <span>ORDER TRACKING & FULFILLMENT ({orders.length})</span>
+          {orders.filter((o) => o.status === 'Pending' || o.status === 'Processing').length > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] bg-amber-500 text-white font-extrabold">
+              {orders.filter((o) => o.status === 'Pending' || o.status === 'Processing').length}
+            </span>
+          )}
         </button>
 
         <button
@@ -519,11 +526,12 @@ export const OwnerAdminDashboard: React.FC<OwnerAdminDashboardProps> = ({
         />
       )}
 
-      {/* Tab 3: Sales Log */}
+      {/* Tab 3: Order Tracking & Sales Log */}
       {activeTab === 'orders' && (
         <OrdersLog
           orders={orders}
           settings={settings}
+          onUpdateOrder={onUpdateOrder}
           onRefundOrder={onRefundOrder}
         />
       )}

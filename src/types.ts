@@ -50,7 +50,11 @@ export interface Order {
   customerEmail: string;
   shippingAddress: string;
   paymentMethod: string;
-  status: 'Completed' | 'Processing' | 'Refunded';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'In Transit' | 'Delivered' | 'Completed' | 'Refunded';
+  trackingNumber?: string;
+  carrier?: string;
+  estimatedDelivery?: string;
+  notes?: string;
 }
 
 export interface StoreSettings {

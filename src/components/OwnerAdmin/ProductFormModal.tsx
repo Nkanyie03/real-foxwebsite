@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Image, Package, Tag, DollarSign, Layers } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Trash2, Image as ImageIcon, Package, Tag, DollarSign, Layers, UploadCloud, Camera, Check, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { Product, Category } from '../../types';
 
 interface ProductFormModalProps {
@@ -11,12 +11,25 @@ interface ProductFormModalProps {
 
 const CATEGORIES: Category[] = ['Hoodies', 'Jackets', 'Caps & Headwear', 'T-Shirts', 'Pants'];
 
+const SAMPLE_PRESETS: { label: string; url: string }[] = [
+  { label: 'Oversized Hoodie', url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=800&q=80' },
+  { label: 'Bomber Jacket', url: 'https://images.unsplash.com/photo-1548883354-7622d03aca27?auto=format&fit=crop&w=800&q=80' },
+  { label: 'Street Snapback', url: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80' },
+  { label: 'Boxy Heavy Tee', url: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=800&q=80' },
+  { label: 'Cargo Pants', url: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=800&q=80' },
+];
+
 export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   isOpen,
   productToEdit,
   onClose,
   onSave,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageSourceMode, setImageSourceMode] = useState<'device' | 'url' | 'presets'>('device');
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     sku: '',
@@ -63,7 +76,57 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         inStock: true,
       });
     }
+    setUploadError('');
   }, [productToEdit, isOpen]);
+
+  // Handle local file selection
+  const processFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select a valid image file (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setUploadError('Image file is large (>8MB). Please pick a smaller image.');
+      return;
+    }
+
+    setUploadError('');
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setFormData((prev) => ({ ...prev, image: e.target?.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -292,31 +355,178 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </div>
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-              Image URL *
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                required
-                value={formData.image || ''}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://..."
-                className="flex-1 px-3 py-2 border border-slate-200 rounded-md text-xs outline-none focus:ring-2 focus:ring-indigo-600"
-              />
-              {formData.image && (
+          {/* Product Picture Upload & Selection */}
+          <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black text-slate-900 uppercase flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-indigo-600" />
+                Product Photo *
+              </label>
+
+              {/* Mode Switcher */}
+              <div className="flex bg-slate-200 p-0.5 rounded-lg text-[10px] font-extrabold uppercase">
+                <button
+                  type="button"
+                  onClick={() => setImageSourceMode('device')}
+                  className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+                    imageSourceMode === 'device' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'
+                  }`}
+                >
+                  <UploadCloud className="w-3 h-3" />
+                  <span>From Device</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setImageSourceMode('url')}
+                  className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+                    imageSourceMode === 'url' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'
+                  }`}
+                >
+                  <LinkIcon className="w-3 h-3" />
+                  <span>URL Link</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setImageSourceMode('presets')}
+                  className={`px-2.5 py-1 rounded-md transition-all flex items-center gap-1 ${
+                    imageSourceMode === 'presets' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700 hover:text-slate-900'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Presets</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Hidden native File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {/* Mode 1: Device File Upload Dropzone */}
+            {imageSourceMode === 'device' && (
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
+                  dragActive
+                    ? 'border-indigo-600 bg-indigo-50/80 scale-[1.01]'
+                    : 'border-slate-300 hover:border-indigo-500 bg-white hover:bg-slate-50'
+                }`}
+              >
+                {formData.image && formData.image.startsWith('data:image/') ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img
+                      src={formData.image}
+                      alt="Uploaded preview"
+                      className="w-24 h-24 object-cover rounded-lg border border-slate-300 shadow-xs"
+                    />
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                      <Check className="w-4 h-4" /> Photo uploaded from device
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="px-3 py-1 bg-slate-900 text-white text-[10px] font-bold uppercase rounded-md hover:bg-slate-800"
+                    >
+                      Choose Different Photo
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800 uppercase">
+                        Click to select photo from your computer or phone
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Supports PNG, JPG, WEBP, GIF (Drag and drop file here)
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Mode 2: Direct Image URL Input */}
+            {imageSourceMode === 'url' && (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={formData.image || ''}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    placeholder="Paste image web URL (e.g. https://...)"
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded-md text-xs outline-none focus:ring-2 focus:ring-indigo-600 font-mono"
+                  />
+                  {formData.image && (
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="w-10 h-10 object-cover rounded-md border border-slate-300"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Mode 3: Presets Gallery */}
+            {imageSourceMode === 'presets' && (
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {SAMPLE_PRESETS.map((p, idx) => (
+                  <button
+                    type="button"
+                    key={idx}
+                    onClick={() => setFormData({ ...formData, image: p.url })}
+                    className={`p-1.5 rounded-lg border text-left flex flex-col items-center gap-1 transition-all ${
+                      formData.image === p.url
+                        ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600'
+                        : 'border-slate-200 hover:border-slate-400 bg-white'
+                    }`}
+                  >
+                    <img src={p.url} alt={p.label} className="w-12 h-12 object-cover rounded" />
+                    <span className="text-[10px] font-bold text-slate-800 truncate w-full text-center">
+                      {p.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {uploadError && (
+              <p className="text-xs font-bold text-red-600">{uploadError}</p>
+            )}
+
+            {/* Active Image Thumbnail Preview Bar */}
+            {formData.image && (
+              <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200">
                 <img
                   src={formData.image}
-                  alt="Preview"
-                  className="w-9 h-9 object-cover rounded-md border border-slate-200"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
+                  alt="Active"
+                  className="w-12 h-12 object-cover rounded-md border border-slate-200"
                 />
-              )}
-            </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-900">Current Selected Product Image</p>
+                  <p className="text-[10px] text-slate-500 truncate font-mono">{formData.image.slice(0, 60)}...</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Description */}
