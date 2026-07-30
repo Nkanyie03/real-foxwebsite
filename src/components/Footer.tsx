@@ -1,13 +1,15 @@
 import React from 'react';
 import { RealFoxLogo } from './RealFoxLogo';
 import { Instagram, Twitter, Facebook, Youtube, ShieldCheck, Truck, RefreshCw, CreditCard } from 'lucide-react';
+import { StoreSettings } from '../types';
 
 interface FooterProps {
   onOpenContact: () => void;
   onOpenAuth: () => void;
+  settings?: StoreSettings;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenContact, onOpenAuth }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenContact, onOpenAuth, settings }) => {
   return (
     <footer className="bg-slate-950 text-white pt-16 pb-12 border-t border-slate-900">
       
@@ -50,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact, onOpenAuth }) => 
           
           {/* Logo & Info */}
           <div className="space-y-4 md:col-span-1">
-            <RealFoxLogo variant="light" size="md" />
+            <RealFoxLogo logoUrl={settings?.logoUrl} storeName={settings?.storeName} variant="light" size="md" />
             <p className="text-xs text-slate-400 leading-relaxed">
               Real Fox Street Wear is an independent urban fashion house producing heavy-duty minimalist streetwear for everyday movement.
             </p>

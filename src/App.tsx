@@ -23,6 +23,10 @@ const INITIAL_SETTINGS: StoreSettings = {
   lowStockThreshold: 5,
   ownerPin: '1234',
   isPinRequired: false,
+  enableCardPayments: true,
+  enableApplePay: true,
+  enablePayPal: true,
+  enableKlarna: true,
 };
 
 const INITIAL_ORDERS: Order[] = [
@@ -342,6 +346,7 @@ export default function App() {
         setActiveTab={handleTabChange}
         cartCount={cartCount}
         wishlistCount={wishlistIds.length}
+        settings={settings}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenSearch={() => setIsSearchOpen(true)}
@@ -393,6 +398,7 @@ export default function App() {
 
       {/* Footer */}
       <Footer
+        settings={settings}
         onOpenContact={() => setIsContactOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
       />
@@ -418,6 +424,7 @@ export default function App() {
       <CheckoutModal
         isOpen={isCheckoutOpen}
         cartItems={cartItems}
+        settings={settings}
         onClose={() => setIsCheckoutOpen(false)}
         onClearCart={() => setCartItems([])}
         onCompleteOrder={handleCompleteOrder}

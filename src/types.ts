@@ -64,5 +64,10 @@ export interface StoreSettings {
   lowStockThreshold: number; // e.g. 5
   ownerPin: string;
   isPinRequired: boolean;
+  enableCardPayments?: boolean;
+  enableApplePay?: boolean;
+  enablePayPal?: boolean;
+  enableKlarna?: boolean;
+  logoUrl?: string;
 }
 

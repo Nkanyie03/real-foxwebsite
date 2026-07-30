@@ -1,12 +1,14 @@
 import React from 'react';
 import { Search, Heart, ShoppingBag, User, ShieldCheck } from 'lucide-react';
 import { RealFoxLogo } from './RealFoxLogo';
+import { StoreSettings } from '../types';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   cartCount: number;
   wishlistCount: number;
+  settings?: StoreSettings;
   onOpenCart: () => void;
   onOpenWishlist: () => void;
   onOpenSearch: () => void;
@@ -20,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   cartCount,
   wishlistCount,
+  settings,
   onOpenCart,
   onOpenWishlist,
   onOpenSearch,
@@ -39,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Top indigo accent bar from Professional Polish theme */}
       <div className="h-1.5 bg-indigo-600 w-full flex justify-between items-center px-4">
         <span className="text-[10px] text-indigo-100 font-extrabold uppercase tracking-widest hidden sm:inline">
-          REAL FOX STORE SYSTEM • INVENTORY & POS INTEGRATED
+          {settings?.storeName ? settings.storeName.toUpperCase() : 'REAL FOX STORE SYSTEM'} • INVENTORY & POS INTEGRATED
         </span>
         <button
           onClick={onOpenOwnerAdmin}
@@ -55,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Logo */}
           <div className="flex-shrink-0 cursor-pointer" onClick={() => setActiveTab('home')}>
-            <RealFoxLogo size="md" />
+            <RealFoxLogo logoUrl={settings?.logoUrl} storeName={settings?.storeName} size="md" />
           </div>
 
           {/* Navigation Links - Center */}
