@@ -1,0 +1,6 @@
+{
+  "name": "Real Fox Street Wear",
+  "description": "Official online store and brand showcase for Real Fox Street Wear, featuring urban streetwear hoodies, jackets, caps, lookbooks, and interactive shopping.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
